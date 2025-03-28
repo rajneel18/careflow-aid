@@ -1,4 +1,3 @@
-
 import Navbar from "@/components/Navbar";
 import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
@@ -9,12 +8,11 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { toast } from "sonner";
+import { PatientDialog } from "@/components/PatientDialog";
 
 const Patients = () => {
-  const [selectedPatient, setSelectedPatient] = useState<string | null>("PT-12345");
-
-  // Sample patient data
-  const patients = [
+  const [patients, setPatients] = useState([
     {
       id: "PT-12345",
       name: "Michael Anderson",
@@ -140,7 +138,38 @@ const Patients = () => {
       },
       notes: "GERD symptoms improving with medication and dietary changes. Sleep issues persist despite current interventions."
     },
-  ];
+  ]);
+
+  const [selectedPatient, setSelectedPatient] = useState<string | null>("PT-12345");
+  const [searchTerm, setSearchTerm] = useState("");
+
+  const filteredPatients = patients.filter(patient => 
+    patient.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+    patient.id.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const handleAddPatient = (newPatient: any) => {
+    setPatients(prevPatients => [...prevPatients, newPatient]);
+    setSelectedPatient(newPatient.id);
+  };
+
+  const handleStartVisit = () => {
+    toast.success("Visit started successfully");
+    
+    if (selectedPatient) {
+      setPatients(prevPatients => 
+        prevPatients.map(patient => 
+          patient.id === selectedPatient 
+            ? { ...patient, status: "Active", lastVisit: "Today" } 
+            : patient
+        )
+      );
+    }
+  };
+
+  const handleFilter = () => {
+    toast.info("Filtering options will be available in the next version");
+  };
 
   const getInitials = (name: string) => {
     return name
@@ -176,15 +205,17 @@ const Patients = () => {
           <div className="flex gap-2">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-              <Input placeholder="Search patients..." className="pl-9" />
+              <Input 
+                placeholder="Search patients..." 
+                className="pl-9" 
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
             </div>
-            <Button variant="outline" size="icon">
+            <Button variant="outline" size="icon" onClick={handleFilter}>
               <Filter className="h-4 w-4" />
             </Button>
-            <Button>
-              <Plus className="mr-1 h-4 w-4" />
-              Add Patient
-            </Button>
+            <PatientDialog onAddPatient={handleAddPatient} />
           </div>
         </div>
         
@@ -194,30 +225,36 @@ const Patients = () => {
               <div className="mb-2 text-sm font-medium">Patient List</div>
               <ScrollArea className="h-[calc(100vh-220px)]">
                 <div className="space-y-2 pr-4">
-                  {patients.map((patient) => (
-                    <div 
-                      key={patient.id}
-                      className={`flex cursor-pointer items-center gap-3 rounded-md border p-3 transition-colors hover:bg-muted/50 ${selectedPatient === patient.id ? 'bg-primary/10 border-primary/20' : ''}`}
-                      onClick={() => setSelectedPatient(patient.id)}
-                    >
-                      <Avatar className="h-10 w-10">
-                        <AvatarFallback className="bg-primary/10 text-primary">
-                          {getInitials(patient.name)}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div className="flex-1">
-                        <div className="font-medium">{patient.name}</div>
-                        <div className="flex items-center gap-2">
-                          <span className="text-xs text-muted-foreground">{patient.id}</span>
-                          <span className="text-xs text-muted-foreground">•</span>
-                          <span className="text-xs text-muted-foreground">{patient.age} yrs</span>
+                  {filteredPatients.length > 0 ? (
+                    filteredPatients.map((patient) => (
+                      <div 
+                        key={patient.id}
+                        className={`flex cursor-pointer items-center gap-3 rounded-md border p-3 transition-colors hover:bg-muted/50 ${selectedPatient === patient.id ? 'bg-primary/10 border-primary/20' : ''}`}
+                        onClick={() => setSelectedPatient(patient.id)}
+                      >
+                        <Avatar className="h-10 w-10">
+                          <AvatarFallback className="bg-primary/10 text-primary">
+                            {getInitials(patient.name)}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="flex-1">
+                          <div className="font-medium">{patient.name}</div>
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs text-muted-foreground">{patient.id}</span>
+                            <span className="text-xs text-muted-foreground">•</span>
+                            <span className="text-xs text-muted-foreground">{patient.age} yrs</span>
+                          </div>
                         </div>
+                        <Badge variant="outline" className={`${getStatusColor(patient.status)} border-none font-normal`}>
+                          {patient.status}
+                        </Badge>
                       </div>
-                      <Badge variant="outline" className={`${getStatusColor(patient.status)} border-none font-normal`}>
-                        {patient.status}
-                      </Badge>
+                    ))
+                  ) : (
+                    <div className="py-4 text-center text-sm text-muted-foreground">
+                      No patients found matching "{searchTerm}"
                     </div>
-                  ))}
+                  )}
                 </div>
               </ScrollArea>
             </CardContent>
@@ -246,7 +283,7 @@ const Patients = () => {
                       </div>
                     </div>
                   </div>
-                  <Button>Start Visit</Button>
+                  <Button onClick={handleStartVisit}>Start Visit</Button>
                 </div>
                 
                 <Tabs defaultValue="overview">
