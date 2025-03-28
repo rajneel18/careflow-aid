@@ -1,5 +1,4 @@
-
-import { Home, ClipboardList, Users, Settings, Menu } from "lucide-react";
+import { Home, ClipboardList, Users, Settings, Menu, Mic } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { useState } from "react";
@@ -43,6 +42,7 @@ const Navbar = () => {
           <NavItem icon={Home} label="Dashboard" value="dashboard" />
           <NavItem icon={ClipboardList} label="Patient Records" value="records" />
           <NavItem icon={Users} label="Patients" value="patients" />
+          <NavItem icon={Mic} label="Audio Recordings" value="audio-recordings" />
           <NavItem icon={Settings} label="Settings" value="settings" />
         </div>
       </div>
@@ -73,6 +73,7 @@ const Navbar = () => {
                 <NavItem icon={Home} label="Dashboard" value="dashboard" />
                 <NavItem icon={ClipboardList} label="Patient Records" value="records" />
                 <NavItem icon={Users} label="Patients" value="patients" />
+                <NavItem icon={Mic} label="Audio Recordings" value="audio-recordings" />
                 <NavItem icon={Settings} label="Settings" value="settings" />
               </div>
             </div>
